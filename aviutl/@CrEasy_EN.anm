@@ -453,18 +453,18 @@ local mask_path = string.gsub(img_path, active_name, mask_name)
 obj.setoption("drawtarget","tempbuffer",w,h)
 
 obj.load("framebuffer")
-obj.effect("ぼかし","範囲",blur,"サイズ固定",1)
+obj.effect("Blur","Range",blur,"Size Fix",1)
 if(color~=nil)then
-	obj.effect("単色化","強さ",c_pow,"color",color,"輝度を保持する",0)
+	obj.effect("Monochromatic","Strength",c_pow,"color",color,"Keep luminance",0)
 end
 if(c_hue~=0)then
-	obj.effect("色調補正","色相",c_hue)
+	obj.effect("Color Correction","Hue",c_hue)
 end
 obj.draw(dfx,dfy,0,1/zoom,1,0,0,-rz)
 
 obj.load("image", mask_path)
 obj.setoption("blend","alpha_sub")
-obj.effect("反転","透明度反転",1)
+obj.effect("Reversal","Transparency inversion",1)
 obj.draw()
 
 obj.setoption("blend",0)
@@ -514,18 +514,18 @@ local mask_path = string.gsub(img_path, active_name, mask_name)
 obj.setoption("drawtarget","tempbuffer",w,h)
 
 obj.load("framebuffer")
-obj.effect("ぼかし","範囲",blur,"サイズ固定",1)
+obj.effect("Blur","Range",blur,"Size Fix",1)
 if(color~=nil)then
-	obj.effect("単色化","強さ",c_pow,"color",color,"輝度を保持する",0)
+	obj.effect("Monochromatic","Strength",c_pow,"color",color,"Keep luminance",0)
 end
 if(c_hue~=0)then
-	obj.effect("色調補正","色相",c_hue)
+	obj.effect("Color Correction","Hue",c_hue)
 end
 obj.draw(dfx,dfy,0,1/zoom,1,0,0,-rz)
 
 obj.load("image", mask_path)
 obj.setoption("blend","alpha_sub")
-obj.effect("反転","透明度反転",1)
+obj.effect("Reversal","Transparency inversion",1)
 obj.draw()
 
 obj.setoption("blend",0)
