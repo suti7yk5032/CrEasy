@@ -1,0 +1,550 @@
+@CrEasy
+--track0:グリッド,0,5000,0,1
+--track1:並び,1,10,1,1
+--track2:ウィンドウ番号,1,1000,1,1
+--check0:非アクティブ化,0
+--dialog:Z軸も動かす/chk, local z_check=0; パススルー/chk, local pass_switch=0; Z軸グリッド, local z_grid="0"; 置き換え前, active_name="b1"; 置き換え後, inactive_name="b2"; 乱数シード値, local rand_seed="100"; X上限, local screen_x_deadzone="0"; Y上限, local screen_y_deadzone="0"; フィルタ効果を無視/chk, local filter_pass_switch=0; フィルタ効果の数, local filter_num=1;
+
+require("rikky_module")
+
+local item_w, item_h = obj.getpixel()
+local screen_w = obj.screen_w
+local screen_h = obj.screen_h
+local grid = math.ceil(obj.track0)
+local mode = obj.track1
+window_num = obj.track2 - 1
+local inactive_switch = obj.check0
+
+object_type, object_info = rikky_module.getinfo("object")
+local group_num, group_total, group_switch = rikky_module.getinfo("groups")
+local group_num_fix = group_num + 1
+
+if (group_switch >= 1) then
+    if (filter_pass_switch == 1) then
+        window_num = math.ceil(group_num_fix / (2 + filter_num) - 1)
+    else
+        window_num = math.ceil(group_num_fix / 2 - 1)
+    end
+end
+
+if (pass_switch == 1) then
+    inactive_flag = 0
+end
+
+if (inactive_switch == true) then
+    if (object_info["file"] == nil) then
+        inactive_path = "a"
+    else
+        inactive_path = string.gsub(object_info["file"], active_name, inactive_name)
+    end
+
+    if (group_switch >= 1) then
+        if (filter_pass_switch == 1) then
+            if ((group_num_fix - 2) % (2 + filter_num) == 0) then
+                if (pass_switch == 1) then
+                    inactive_flag = 1
+                elseif (pass_switch == 0) then
+                    obj.load(inactive_path)
+                end
+            end
+        else
+            if (group_num_fix % 2 == 0) then
+                if (pass_switch == 1) then
+                    inactive_flag = 1
+                elseif (pass_switch == 0) then
+                    obj.load(inactive_path)
+                end
+            end
+        end
+    else
+        if (pass_switch == 1) then
+            inactive_flag = 1
+        elseif (pass_switch == 0) then
+            obj.load(inactive_path)
+        end
+    end
+end
+
+ox = 0
+oy = 0
+oz = 0
+
+if (mode == 1) then
+    ox = (screen_w / 2 - item_w / 2) * -1 + grid * window_num
+    oy = (screen_h / 2 - item_h / 2) * -1 + grid * window_num
+
+elseif (mode == 2) then
+    ox = (screen_w / 2 - item_w / 2) + grid * window_num * -1
+    oy = (screen_h / 2 - item_h / 2) * -1 + grid * window_num
+
+elseif (mode == 3) then
+    ox = (screen_w / 2 - item_w / 2) * -1 + grid * window_num
+    oy = (screen_h / 2 - item_h / 2) + grid * window_num * -1
+
+elseif (mode == 4) then
+    ox = (screen_w / 2 - item_w / 2) + grid * window_num * -1
+    oy = (screen_h / 2 - item_h / 2) + grid * window_num * -1
+
+elseif (mode == 5) then
+    if (item_w % 2 == 1) then
+        ox = 0.5
+    end
+
+    if (item_h % 2 == 1) then
+        oy = 0.5
+    end
+
+elseif (mode == 6) then
+    if (item_w % 2 == 1) then
+        ox = 0.5
+    end
+
+    oy = (screen_h / 2 - item_h / 2) * -1 + grid * window_num
+
+elseif (mode == 7) then
+    if (item_w % 2 == 1) then
+        ox = 0.5
+    end
+
+    oy = (screen_h / 2 - item_h / 2) + grid * window_num * -1
+
+elseif (mode == 8) then
+    ox = (screen_w / 2 - item_w / 2) * -1 + grid * window_num
+
+    if (item_h % 2 == 1) then
+        oy = 0.5
+    end
+
+elseif (mode == 9) then
+    ox = (screen_w / 2 - item_w / 2) + grid * window_num * -1
+
+    if (item_h % 2 == 1) then
+        oy = 0.5
+    end
+
+elseif (mode == 10) then
+    ox = math.ceil(obj.rand(grid * -1, grid, rand_seed, 0))
+    oy = math.ceil(obj.rand(grid * -1, grid, rand_seed + 1, 0))
+    if (ox % 2 == 0) then
+        ox = ox + grid * -1
+    else
+        ox = ox + grid
+    end
+    if (oy % 2 == 1) then
+        oy = oy + grid * -1
+    else
+        oy = oy + grid
+    end
+    if (item_w % 2 == 1) then
+        ox = ox + 0.5
+    end
+    if (item_h % 2 == 1) then
+        oy = oy + 0.5 
+    end
+end
+
+if (tonumber(screen_x_deadzone) < 0) then
+    hamidashi_x_limit = (screen_w / 2) + (screen_x_deadzone) + (item_w / 2 * -1) + (obj.x * -1)
+    if (ox > hamidashi_x_limit) then
+        ox = hamidashi_x_limit
+    end
+elseif (tonumber(screen_x_deadzone) > 0) then
+    hamidashi_x_limit = (screen_w / 2 * -1) + (screen_x_deadzone) + (item_w / 2) + (obj.x * -1)
+    if (ox < hamidashi_x_limit) then
+        ox = hamidashi_x_limit
+    end
+end
+
+if (tonumber(screen_y_deadzone) < 0) then
+    hamidashi_y_limit = (screen_h / 2) + (screen_y_deadzone) + (item_h / 2 * -1) + (obj.y * -1)
+    if (oy > hamidashi_y_limit) then
+        oy = hamidashi_y_limit
+    end
+elseif (tonumber(screen_y_deadzone) > 0) then
+    hamidashi_y_limit = (screen_h / 2 * -1) + (screen_y_deadzone) + (item_h / 2) + (obj.y * -1)
+    if (oy < hamidashi_y_limit) then
+        oy = hamidashi_y_limit
+    end
+end
+
+if (z_check == 1) then
+    if (tonumber(z_grid) ~= 0) then
+        if (mode == 10) then
+            oz = math.ceil(obj.rand(z_grid * -1, z_grid, rand_seed + 2, 0))
+            if (oz % 2 == 0) then
+                oz = oz + z_grid * -1
+            else
+                oz = oz + z_grid
+            end
+        else
+            oz = math.ceil(z_grid * window_num * -1)
+        end
+    else
+        if (mode == 10) then
+            oz = math.ceil(obj.rand(grid * -1, grid, rand_seed + 2, 0))
+            if (oz % 2 == 0) then
+                oz = oz + grid * -1
+            else
+                oz = oz + grid
+            end
+        else
+            oz = math.ceil(grid * window_num * -1)
+        end
+    end
+    
+    if (pass_switch == 0) then
+        obj.oz = obj.oz + oz
+    end
+end
+
+if (pass_switch == 0) then
+    obj.ox = obj.ox + ox
+    obj.oy = obj.oy + oy
+end
+
+
+@CrEasy_sep
+--track0:Xグリッド,0,5000,0,1
+--track1:Yグリッド,0,5000,0,1
+--track2:並び,1,10,1,1
+--track3:ウィンドウ番号,1,1000,1,1
+--check0:非アクティブ化,0
+--dialog:Z軸も動かす/chk, local z_check=0; パススルー/chk, local pass_switch=0; Z軸グリッド, local z_grid="0"; 置き換え前, active_name="b1"; 置き換え後, inactive_name="b2"; 乱数シード値, local rand_seed="100"; X上限, local screen_x_deadzone="0"; Y上限, local screen_y_deadzone="0"; フィルタ効果を無視/chk, local filter_pass_switch=0; フィルタ効果の数, local filter_num=1;
+
+require("rikky_module")
+
+local item_w, item_h = obj.getpixel()
+local screen_w = obj.screen_w
+local screen_h = obj.screen_h
+local x_grid = math.ceil(obj.track0)
+local y_grid = math.ceil(obj.track1)
+local mode = obj.track2
+window_num = obj.track3 - 1
+local inactive_switch = obj.check0
+
+object_type, object_info = rikky_module.getinfo("object")
+local group_num, group_total, group_switch = rikky_module.getinfo("groups")
+local group_num_fix = group_num + 1
+
+if (group_switch >= 1) then
+    if (filter_pass_switch == 1) then
+        window_num = math.ceil(group_num_fix / (2 + filter_num) - 1)
+    else
+        window_num = math.ceil(group_num_fix / 2 - 1)
+    end
+end
+
+if (pass_switch == 1) then
+    inactive_flag = 0
+end
+
+if (inactive_switch == true) then
+    if (object_info["file"] == nil) then
+        inactive_path = "a"
+    else
+        inactive_path = string.gsub(object_info["file"], active_name, inactive_name)
+    end
+
+    if (group_switch >= 1) then
+        if (filter_pass_switch == 1) then
+            if ((group_num_fix - 2) % (2 + filter_num) == 0) then
+                if (pass_switch == 1) then
+                    inactive_flag = 1
+                elseif (pass_switch == 0) then
+                    obj.load(inactive_path)
+                end
+            end
+        else
+            if (group_num_fix % 2 == 0) then
+                if (pass_switch == 1) then
+                    inactive_flag = 1
+                elseif (pass_switch == 0) then
+                    obj.load(inactive_path)
+                end
+            end
+        end
+    else
+        if (pass_switch == 1) then
+            inactive_flag = 1
+        elseif (pass_switch == 0) then
+            obj.load(inactive_path)
+        end
+    end
+end
+
+ox = 0
+oy = 0
+oz = 0
+
+if (mode == 1) then
+    ox = (screen_w / 2 - item_w / 2) * -1 + x_grid * window_num
+    oy = (screen_h / 2 - item_h / 2) * -1 + y_grid * window_num
+
+elseif (mode == 2) then
+    ox = (screen_w / 2 - item_w / 2) + x_grid * window_num * -1
+    oy = (screen_h / 2 - item_h / 2) * -1 + y_grid * window_num
+
+elseif (mode == 3) then
+    ox = (screen_w / 2 - item_w / 2) * -1 + x_grid * window_num
+    oy = (screen_h / 2 - item_h / 2) + y_grid * window_num * -1
+
+elseif (mode == 4) then
+    ox = (screen_w / 2 - item_w / 2) + x_grid * window_num * -1
+    oy = (screen_h / 2 - item_h / 2) + y_grid * window_num * -1
+
+elseif (mode == 5) then
+    if (item_w % 2 == 1) then
+        ox = 0.5
+    end
+
+    if (item_h % 2 == 1) then
+        oy = 0.5
+    end
+
+elseif (mode == 6) then
+    if (item_w % 2 == 1) then
+        ox = 0.5
+    end
+
+    oy = (screen_h / 2 - item_h / 2) * -1 + y_grid * window_num
+
+elseif (mode == 7) then
+    if (item_w % 2 == 1) then
+        ox = 0.5
+    end
+
+    oy = (screen_h / 2 - item_h / 2) + y_grid * window_num * -1
+
+elseif (mode == 8) then
+    ox = (screen_w / 2 - item_w / 2) * -1 + x_grid * window_num
+
+    if (item_h % 2 == 1) then
+        oy = 0.5
+    end
+
+elseif (mode == 9) then
+    ox = (screen_w / 2 - item_w / 2) + x_grid * window_num * -1
+
+    if (item_h % 2 == 1) then
+        oy = 0.5
+    end
+
+elseif (mode == 10) then
+    ox = math.ceil(obj.rand(x_grid * -1, x_grid, rand_seed, 0))
+    oy = math.ceil(obj.rand(y_grid * -1, y_grid, rand_seed + 1, 0))
+    if (ox % 2 == 0) then
+        ox = ox + x_grid * -1
+    else
+        ox = ox + x_grid
+    end
+    if (oy % 2 == 1) then
+        oy = oy + y_grid * -1
+    else
+        oy = oy + y_grid
+    end
+
+    if (item_w % 2 == 1) then
+        ox = ox + 0.5
+    end
+    if (item_h % 2 == 1) then
+        oy = oy + 0.5 
+    end
+end
+
+if (tonumber(screen_x_deadzone) < 0) then
+    hamidashi_x_limit = (screen_w / 2) + (screen_x_deadzone) + (item_w / 2 * -1) + (obj.x * -1)
+    if (ox > hamidashi_x_limit) then
+        ox = hamidashi_x_limit
+    end
+elseif (tonumber(screen_x_deadzone) > 0) then
+    hamidashi_x_limit = (screen_w / 2 * -1) + (screen_x_deadzone) + (item_w / 2) + (obj.x * -1)
+    if (ox < hamidashi_x_limit) then
+        ox = hamidashi_x_limit
+    end
+end
+
+if (tonumber(screen_y_deadzone) < 0) then
+    hamidashi_y_limit = (screen_h / 2) + (screen_y_deadzone) + (item_h / 2 * -1) + (obj.y * -1)
+    if (oy > hamidashi_y_limit) then
+        oy = hamidashi_y_limit
+    end
+elseif (tonumber(screen_y_deadzone) > 0) then
+    hamidashi_y_limit = (screen_h / 2 * -1) + (screen_y_deadzone) + (item_h / 2) + (obj.y * -1)
+    if (oy < hamidashi_y_limit) then
+        oy = hamidashi_y_limit
+    end
+end
+
+if (z_check == 1) then
+    if (tonumber(z_grid) ~= 0) then
+        if (mode == 10) then
+            oz = math.ceil(obj.rand(z_grid * -1, z_grid, rand_seed + 2, 0))
+            if (oz % 2 == 0) then
+                oz = oz + z_grid * -1
+            else
+                oz = oz + z_grid
+            end
+        else
+            oz = math.ceil(z_grid * window_num * -1)
+        end
+    end
+    
+    if (pass_switch == 0) then
+        obj.oz = obj.oz + oz
+    end
+end
+
+if (pass_switch == 0) then
+    obj.ox = obj.ox + ox
+    obj.oy = obj.oy + oy
+end
+
+
+@座標_サブピクセル無効
+--track0:X,-10000,10000,0,1
+--track1:Y,-10000,10000,0,1
+--track2:Z,-10000,10000,0,1
+--check0:パススルー,0
+
+local pass_switch = obj.check0
+
+if (pass_switch == true) then
+    ox = ox + math.ceil(obj.track0)
+    oy = oy + math.ceil(obj.track1)
+    oz = oz + math.ceil(obj.track2)
+else
+    obj.ox = obj.ox + math.ceil(obj.track0)
+    obj.oy = obj.oy + math.ceil(obj.track1)
+    obj.oz = obj.oz + math.ceil(obj.track2)
+end
+
+
+@背景ブラー
+-- The original script is AeroGlass風@hksy 
+-- The original creator is 白水. Thanks!
+
+--track0:ぼかし,0,100,5,1
+--track1:単色化,0,100,42
+--track2:色相,-3600,3600,0,0.1
+--dialog:置き換え前, local active_name="b1"; 置き換え後, local mask_name="mask"; 色/col,local color=0x74b8fc;
+
+require("rikky_module")
+
+local function range(r1, r2, v)
+	return math.max(r1, math.min(r2, v))
+end
+local function rot(x,y,r)
+	local rad = r/180*math.pi
+	local sin = math.sin(rad)
+	local cos = math.cos(rad)
+	return	x*cos-y*sin, x*sin+y*cos
+end
+
+local blur	= obj.track0
+local c_pow = obj.track1
+local c_hue = obj.track2
+
+local x		= obj.x + obj.ox + obj.cx
+local y		= obj.y + obj.oy + obj.cy
+local zoom	= obj.getvalue("zoom")/100
+local rz	= obj.rz
+local w,h	= obj.getpixel()
+local x		= x/zoom
+local y		= y/zoom
+local dfx,dfy	= rot(-x,-y,-rz)
+
+local object_type, object_info = rikky_module.getinfo("object")
+local img_path = object_info["file"]
+local mask_path = string.gsub(img_path, active_name, mask_name)
+
+obj.setoption("drawtarget","tempbuffer",w,h)
+
+obj.load("framebuffer")
+obj.effect("ぼかし","範囲",blur,"サイズ固定",1)
+if(color~=nil)then
+	obj.effect("単色化","強さ",c_pow,"color",color,"輝度を保持する",0)
+end
+if(c_hue~=0)then
+	obj.effect("色調補正","色相",c_hue)
+end
+obj.draw(dfx,dfy,0,1/zoom,1,0,0,-rz)
+
+obj.load("image", mask_path)
+obj.setoption("blend","alpha_sub")
+obj.effect("反転","透明度反転",1)
+obj.draw()
+
+obj.setoption("blend",0)
+obj.load("image", img_path)
+obj.draw()
+
+obj.load("tempbuffer")
+
+
+@背景ブラー_for_CrEasy
+-- The original script is AeroGlass風@hksy 
+-- The original creator is 白水. Thanks!
+
+--track0:ぼかし,0,100,5,1
+--track1:単色化,0,100,42
+--track2:色相,-3600,3600,0,0.1
+--dialog:置き換え後, local mask_name="mask"; 色/col,local color=0x74b8fc;
+
+require("rikky_module")
+
+local function range(r1, r2, v)
+	return math.max(r1, math.min(r2, v))
+end
+local function rot(x,y,r)
+	local rad = r/180*math.pi
+	local sin = math.sin(rad)
+	local cos = math.cos(rad)
+	return	x*cos-y*sin, x*sin+y*cos
+end
+
+local blur	= obj.track0
+local c_pow = obj.track1
+local c_hue = obj.track2
+
+local x		= obj.x + obj.ox + obj.cx + ox
+local y		= obj.y + obj.oy + obj.cy + oy
+local zoom	= obj.getvalue("zoom")/100
+local rz	= obj.rz
+local w,h	= obj.getpixel()
+local x		= x/zoom
+local y		= y/zoom
+local dfx,dfy	= rot(-x,-y,-rz)
+
+local img_path = object_info["file"]
+local mask_path = string.gsub(img_path, active_name, mask_name)
+
+obj.setoption("drawtarget","tempbuffer",w,h)
+
+obj.load("framebuffer")
+obj.effect("ぼかし","範囲",blur,"サイズ固定",1)
+if(color~=nil)then
+	obj.effect("単色化","強さ",c_pow,"color",color,"輝度を保持する",0)
+end
+if(c_hue~=0)then
+	obj.effect("色調補正","色相",c_hue)
+end
+obj.draw(dfx,dfy,0,1/zoom,1,0,0,-rz)
+
+obj.load("image", mask_path)
+obj.setoption("blend","alpha_sub")
+obj.effect("反転","透明度反転",1)
+obj.draw()
+
+obj.setoption("blend",0)
+if (inactive_flag == 0) then
+    obj.load("image", img_path)
+elseif (inactive_flag == 1) then
+    obj.load("image", inactive_path)
+end
+
+obj.draw()
+
+obj.load("tempbuffer")
+
+obj.ox = obj.ox + ox
+obj.oy = obj.oy + oy

@@ -1,0 +1,291 @@
+@CrEasy
+--track0:Grid,0,5000,0,1
+--track1:Direction,1,10,1,1
+--track2:Number,1,1000,1,1
+--dialog:Move the Z axis/chk, z_check=0; Z axis Grid, z_grid="0"; Seed of random number, rand_seed="200"; X Limit, screen_x_deadzone="0"; Y Limit, screen_y_deadzone="0";
+
+item_w, item_h = obj.getpixel()
+screen_w = obj.screen_w
+screen_h = obj.screen_h
+grid = obj.track0
+mode = obj.track1
+window_num = obj.track2 - 1
+
+ox = 0
+oy = 0
+oz = 0
+
+if (mode == 1) then
+    ox = (screen_w / 2 - item_w / 2) * -1 + grid * window_num
+    oy = (screen_h / 2 - item_h / 2) * -1 + grid * window_num
+
+elseif (mode == 2) then
+    ox = (screen_w / 2 - item_w / 2) + grid * window_num * -1
+    oy = (screen_h / 2 - item_h / 2) * -1 + grid * window_num
+
+elseif (mode == 3) then
+    ox = (screen_w / 2 - item_w / 2) * -1 + grid * window_num
+    oy = (screen_h / 2 - item_h / 2) + grid * window_num * -1
+
+elseif (mode == 4) then
+    ox = (screen_w / 2 - item_w / 2) + grid * window_num * -1
+    oy = (screen_h / 2 - item_h / 2) + grid * window_num * -1
+
+elseif (mode == 5) then
+    if (item_w % 2 == 1) then
+        ox = 0.5
+    end
+
+    if (item_h % 2 == 1) then
+        oy = 0.5
+    end
+
+elseif (mode == 6) then
+    if (item_w % 2 == 1) then
+        ox = 0.5
+    end
+
+    oy = (screen_h / 2 - item_h / 2) * -1 + grid * window_num
+
+elseif (mode == 7) then
+    if (item_w % 2 == 1) then
+        ox = 0.5
+    end
+
+    oy = (screen_h / 2 - item_h / 2) + grid * window_num * -1
+
+elseif (mode == 8) then
+    ox = (screen_w / 2 - item_w / 2) * -1 + grid * window_num
+
+    if (item_h % 2 == 1) then
+        oy = 0.5
+    end
+
+elseif (mode == 9) then
+    ox = (screen_w / 2 - item_w / 2) + grid * window_num * -1
+
+    if (item_h % 2 == 1) then
+        oy = 0.5
+    end
+
+elseif (mode == 10) then
+    ox = math.ceil(obj.rand(grid * -1, grid, rand_seed, 0))
+    oy = math.ceil(obj.rand(grid * -1, grid, rand_seed + 1, 0))
+    if (ox % 2 == 0) then
+        ox = ox + grid * -1
+    else
+        ox = ox + grid
+    end
+    if (oy % 2 == 1) then
+        oy = oy + grid * -1
+    else
+        oy = oy + grid
+    end
+
+    if (item_w % 2 == 1) then
+        ox = ox + 0.5
+    end
+    if (item_h % 2 == 1) then
+        oy = oy + 0.5 
+    end
+end
+
+if (tonumber(screen_x_deadzone) < 0) then
+    hamidashi_x_limit = (screen_w / 2) + (screen_x_deadzone) + (item_w / 2 * -1) + (obj.x * -1)
+    if (ox > hamidashi_x_limit) then
+        ox = hamidashi_x_limit
+    end
+elseif (tonumber(screen_x_deadzone) > 0) then
+    hamidashi_x_limit = (screen_w / 2 * -1) + (screen_x_deadzone) + (item_w / 2) + (obj.x * -1)
+    if (ox < hamidashi_x_limit) then
+        ox = hamidashi_x_limit
+    end
+end
+
+if (tonumber(screen_y_deadzone) < 0) then
+    hamidashi_y_limit = (screen_h / 2) + (screen_y_deadzone) + (item_h / 2 * -1) + (obj.y * -1)
+    if (oy > hamidashi_y_limit) then
+        oy = hamidashi_y_limit
+    end
+elseif (tonumber(screen_y_deadzone) > 0) then
+    hamidashi_y_limit = (screen_h / 2 * -1) + (screen_y_deadzone) + (item_h / 2) + (obj.y * -1)
+    if (oy < hamidashi_y_limit) then
+        oy = hamidashi_y_limit
+    end
+end
+
+if (z_check == 1) then
+    if (tonumber(z_grid) ~= 0) then
+        if (mode == 10) then
+            oz = math.ceil(obj.rand(z_grid * -1, z_grid, rand_seed + 2, 0))
+            if (oz % 2 == 0) then
+                oz = oz + z_grid * -1
+            else
+                oz = oz + z_grid
+            end
+        else
+            oz = math.ceil(z_grid * window_num * -1)
+        end
+    else
+        if (mode == 10) then
+            oz = math.ceil(obj.rand(grid * -1, grid, rand_seed + 2, 0))
+            if (oz % 2 == 0) then
+                oz = oz + grid * -1
+            else
+                oz = oz + grid
+            end
+        else
+            oz = math.ceil(grid * window_num * -1)
+        end
+    end
+    
+    obj.oz = obj.oz + oz
+end
+
+obj.ox = obj.ox + ox
+obj.oy = obj.oy + oy
+
+@CrEasy_sep
+--track0:X Grid,0,5000,0,1
+--track1:Y Grid,0,5000,0,1
+--track2:Direction,1,10,1,1
+--track3:Number,1,1000,1,1
+--dialog:Move the Z axis/chk, z_check=0; Z axis Grid, z_grid="0"; Seed of random number, rand_seed="200"; X Limit, screen_x_deadzone="0"; Y Limit, screen_y_deadzone="0";
+
+item_w, item_h = obj.getpixel()
+screen_w = obj.screen_w
+screen_h = obj.screen_h
+x_grid = obj.track0
+y_grid = obj.track1
+mode = obj.track2
+window_num = obj.track3 - 1
+
+ox = 0
+oy = 0
+oz = 0
+
+if (mode == 1) then
+    ox = (screen_w / 2 - item_w / 2) * -1 + x_grid * window_num
+    oy = (screen_h / 2 - item_h / 2) * -1 + y_grid * window_num
+
+elseif (mode == 2) then
+    ox = (screen_w / 2 - item_w / 2) + x_grid * window_num * -1
+    oy = (screen_h / 2 - item_h / 2) * -1 + y_grid * window_num
+
+elseif (mode == 3) then
+    ox = (screen_w / 2 - item_w / 2) * -1 + x_grid * window_num
+    oy = (screen_h / 2 - item_h / 2) + y_grid * window_num * -1
+
+elseif (mode == 4) then
+    ox = (screen_w / 2 - item_w / 2) + x_grid * window_num * -1
+    oy = (screen_h / 2 - item_h / 2) + y_grid * window_num * -1
+
+elseif (mode == 5) then
+    if (item_w % 2 == 1) then
+        ox = 0.5
+    end
+
+    if (item_h % 2 == 1) then
+        oy = 0.5
+    end
+
+elseif (mode == 6) then
+    if (item_w % 2 == 1) then
+        ox = 0.5
+    end
+
+    oy = (screen_h / 2 - item_h / 2) * -1 + y_grid * window_num
+
+elseif (mode == 7) then
+    if (item_w % 2 == 1) then
+        ox = 0.5
+    end
+
+    oy = (screen_h / 2 - item_h / 2) + y_grid * window_num * -1
+
+elseif (mode == 8) then
+    ox = (screen_w / 2 - item_w / 2) * -1 + x_grid * window_num
+
+    if (item_h % 2 == 1) then
+        oy = 0.5
+    end
+
+elseif (mode == 9) then
+    ox = (screen_w / 2 - item_w / 2) + x_grid * window_num * -1
+
+    if (item_h % 2 == 1) then
+        oy = 0.5
+    end
+
+elseif (mode == 10) then
+    ox = math.ceil(obj.rand(x_grid * -1, x_grid, rand_seed, 0))
+    oy = math.ceil(obj.rand(y_grid * -1, y_grid, rand_seed + 1, 0))
+    if (ox % 2 == 0) then
+        ox = ox + x_grid * -1
+    else
+        ox = ox + x_grid
+    end
+    if (oy % 2 == 1) then
+        oy = oy + y_grid * -1
+    else
+        oy = oy + y_grid
+    end
+
+    if (item_w % 2 == 1) then
+        ox = ox + 0.5
+    end
+    if (item_h % 2 == 1) then
+        oy = oy + 0.5 
+    end
+end
+
+if (tonumber(screen_x_deadzone) < 0) then
+    hamidashi_x_limit = (screen_w / 2) + (screen_x_deadzone) + (item_w / 2 * -1) + (obj.x * -1)
+    if (ox > hamidashi_x_limit) then
+        ox = hamidashi_x_limit
+    end
+elseif (tonumber(screen_x_deadzone) > 0) then
+    hamidashi_x_limit = (screen_w / 2 * -1) + (screen_x_deadzone) + (item_w / 2) + (obj.x * -1)
+    if (ox < hamidashi_x_limit) then
+        ox = hamidashi_x_limit
+    end
+end
+
+if (tonumber(screen_y_deadzone) < 0) then
+    hamidashi_y_limit = (screen_h / 2) + (screen_y_deadzone) + (item_h / 2 * -1) + (obj.y * -1)
+    if (oy > hamidashi_y_limit) then
+        oy = hamidashi_y_limit
+    end
+elseif (tonumber(screen_y_deadzone) > 0) then
+    hamidashi_y_limit = (screen_h / 2 * -1) + (screen_y_deadzone) + (item_h / 2) + (obj.y * -1)
+    if (oy < hamidashi_y_limit) then
+        oy = hamidashi_y_limit
+    end
+end
+
+if (z_check == 1) then
+    if (tonumber(z_grid) ~= 0) then
+        if (mode == 10) then
+            oz = math.ceil(obj.rand(z_grid * -1, z_grid, rand_seed + 2, 0))
+            if (oz % 2 == 0) then
+                oz = oz + z_grid * -1
+            else
+                oz = oz + z_grid
+            end
+        else
+            oz = math.ceil(z_grid * window_num * -1)
+        end
+    end
+end
+
+obj.ox = obj.ox + ox
+obj.oy = obj.oy + oy
+
+@Coordinate_NoSubpixel
+--track0:X,-10000,10000,0,1
+--track1:Y,-10000,10000,0,1
+--track2:Z,-10000,10000,0,1
+
+obj.ox = obj.ox + math.ceil(obj.track0)
+obj.oy = obj.oy + math.ceil(obj.track1)
+obj.oz = obj.oz + math.ceil(obj.track2)
