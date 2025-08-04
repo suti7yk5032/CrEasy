@@ -3,7 +3,7 @@
 --track1:Direction,1,10,1,1
 --track2:Number,1,1000,1,1
 --check0:Inactive,0
---dialog:Move the Z axis/chk, local z_check=0; Pass-through/chk, local pass_switch=0; Z axis Grid, local z_grid="0"; Filename before, active_name="b1"; Filename after, inactive_name="b2"; Seed of random number, local rand_seed="200"; Change in X, local rand_x="300"; Change in Y, local rand_y="300"; Change in Z, local rand_z="300"; X Limit, local screen_x_deadzone="0"; Y Limit, local screen_y_deadzone="0"; Ignore Filter Effects/chk, local filter_pass_switch=0;
+--dialog:Move the Z axis/chk, local z_check=0; Pass-through/chk, local pass_switch=0; Z axis Grid, local z_grid="0"; Filename before, active_name="b1"; Filename after, inactive_name="b2"; Seed of random number, local rand_seed="200"; X Limit, local screen_x_deadzone="0"; Y Limit, local screen_y_deadzone="0"; Ignore Filter Effects/chk, local filter_pass_switch=0; Filter num, local filter_num=1;
 
 require("rikky_module")
 
@@ -21,7 +21,7 @@ local group_num_fix = group_num + 1
 
 if (group_switch >= 1) then
     if (filter_pass_switch == 1) then
-        window_num = math.ceil(group_num_fix / 3 - 1)
+        window_num = math.ceil(group_num_fix / (2 + filter_num) - 1)
     else
         window_num = math.ceil(group_num_fix / 2 - 1)
     end
@@ -40,8 +40,7 @@ if (inactive_switch == true) then
 
     if (group_switch >= 1) then
         if (filter_pass_switch == 1) then
-            window_num = math.ceil(group_num_fix / 3 - 1)
-            if ((group_num_fix - 2) % 3 == 0) then
+            if ((group_num_fix - 2) % (2 + filter_num) == 0) then
                 if (pass_switch == 1) then
                     inactive_flag = 1
                 elseif (pass_switch == 0) then
@@ -49,7 +48,6 @@ if (inactive_switch == true) then
                 end
             end
         else
-            window_num = math.ceil(group_num_fix / 2 - 1)
             if (group_num_fix % 2 == 0) then
                 if (pass_switch == 1) then
                     inactive_flag = 1
@@ -125,8 +123,8 @@ elseif (mode == 9) then
     end
 
 elseif (mode == 10) then
-    ox = math.ceil(obj.rand(rand_x * -1, rand_x, rand_seed, 0))
-    oy = math.ceil(obj.rand(rand_y * -1, rand_y, rand_seed + 1, 0))
+    ox = math.ceil(obj.rand(grid * -1, grid, rand_seed, 0))
+    oy = math.ceil(obj.rand(grid * -1, grid, rand_seed + 1, 0))
     if (ox % 2 == 0) then
         ox = ox + grid * -1
     else
@@ -170,17 +168,28 @@ elseif (tonumber(screen_y_deadzone) > 0) then
 end
 
 if (z_check == 1) then
-    if (tonumber(z_grid) > 0 or tonumber(z_grid) < 0) then
-        oz = math.ceil(z_grid * window_num * -1)
-    elseif (mode == 10) then
-        oz = math.ceil(obj.rand(rand_z * -1, rand_z, rand_seed + 2, 0))
-        if (oz % 2 == 0) then
-            oz = oz + grid * -1
+    if (tonumber(z_grid) ~= 0) then
+        if (mode == 10) then
+            oz = math.ceil(obj.rand(z_grid * -1, z_grid, rand_seed + 2, 0))
+            if (oz % 2 == 0) then
+                oz = oz + z_grid * -1
+            else
+                oz = oz + z_grid
+            end
         else
-            oz = oz + grid
+            oz = math.ceil(z_grid * window_num * -1)
         end
     else
-        oz = math.ceil(grid * window_num * -1)
+        if (mode == 10) then
+            oz = math.ceil(obj.rand(grid * -1, grid, rand_seed + 2, 0))
+            if (oz % 2 == 0) then
+                oz = oz + grid * -1
+            else
+                oz = oz + grid
+            end
+        else
+            oz = math.ceil(grid * window_num * -1)
+        end
     end
     
     if (pass_switch == 0) then
@@ -200,7 +209,7 @@ end
 --track2:Direction,1,10,1,1
 --track3:Number,1,1000,1,1
 --check0:Inactive,0
---dialog:Move the Z axis/chk, local z_check=0; Pass-through/chk, local pass_switch=0; Z axis Grid, local z_grid="0"; Filename before, active_name="b1"; Filename after, inactive_name="b2"; Seed of random number, local rand_seed="200"; Change in X, local rand_x="300"; Change in Y, local rand_y="300"; Change in Z, local rand_z="300"; X Limit, local screen_x_deadzone="0"; Y Limit, local screen_y_deadzone="0"; Ignore Filter Effects/chk, local filter_pass_switch=0;
+--dialog:Move the Z axis/chk, local z_check=0; Pass-through/chk, local pass_switch=0; Z axis Grid, local z_grid="0"; Filename before, active_name="b1"; Filename after, inactive_name="b2"; Seed of random number, local rand_seed="200"; X Limit, local screen_x_deadzone="0"; Y Limit, local screen_y_deadzone="0"; Ignore Filter Effects/chk, local filter_pass_switch=0; Filter num, local filter_num=1;
 
 require("rikky_module")
 
@@ -219,7 +228,7 @@ local group_num_fix = group_num + 1
 
 if (group_switch >= 1) then
     if (filter_pass_switch == 1) then
-        window_num = math.ceil(group_num_fix / 3 - 1)
+        window_num = math.ceil(group_num_fix / (2 + filter_num) - 1)
     else
         window_num = math.ceil(group_num_fix / 2 - 1)
     end
@@ -238,8 +247,7 @@ if (inactive_switch == true) then
 
     if (group_switch >= 1) then
         if (filter_pass_switch == 1) then
-            window_num = math.ceil(group_num_fix / 3 - 1)
-            if ((group_num_fix - 2) % 3 == 0) then
+            if ((group_num_fix - 2) % (2 + filter_num) == 0) then
                 if (pass_switch == 1) then
                     inactive_flag = 1
                 elseif (pass_switch == 0) then
@@ -247,7 +255,6 @@ if (inactive_switch == true) then
                 end
             end
         else
-            window_num = math.ceil(group_num_fix / 2 - 1)
             if (group_num_fix % 2 == 0) then
                 if (pass_switch == 1) then
                     inactive_flag = 1
@@ -323,8 +330,8 @@ elseif (mode == 9) then
     end
 
 elseif (mode == 10) then
-    ox = math.ceil(obj.rand(rand_x * -1, rand_x, rand_seed, 0))
-    oy = math.ceil(obj.rand(rand_y * -1, rand_y, rand_seed + 1, 0))
+    ox = math.ceil(obj.rand(x_grid * -1, x_grid, rand_seed, 0))
+    oy = math.ceil(obj.rand(y_grid * -1, y_grid, rand_seed + 1, 0))
     if (ox % 2 == 0) then
         ox = ox + x_grid * -1
     else
@@ -369,17 +376,17 @@ elseif (tonumber(screen_y_deadzone) > 0) then
 end
 
 if (z_check == 1) then
-    if (tonumber(z_grid) > 0 or tonumber(z_grid) < 0) then
-        oz = math.ceil(z_grid * window_num * -1)
-    elseif (mode == 10) then
-        oz = math.ceil(obj.rand(rand_z * -1, rand_z, rand_seed + 2, 0))
-        if (oz % 2 == 0) then
-            oz = oz + grid * -1
+    if (tonumber(z_grid) ~= 0) then
+        if (mode == 10) then
+            oz = math.ceil(obj.rand(z_grid * -1, z_grid, rand_seed + 2, 0))
+            if (oz % 2 == 0) then
+                oz = oz + z_grid * -1
+            else
+                oz = oz + z_grid
+            end
         else
-            oz = oz + grid
+            oz = math.ceil(z_grid * window_num * -1)
         end
-    else
-        oz = math.ceil(grid * window_num * -1)
     end
     
     if (pass_switch == 0) then
