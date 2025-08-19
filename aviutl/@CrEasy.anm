@@ -488,7 +488,7 @@ obj.load("tempbuffer")
 --track0:ぼかし,0,100,5,1
 --track1:単色化,0,100,42
 --track2:色相,-3600,3600,0,0.1
---dialog:置き換え後, local mask_name="mask"; 色/col,local color=0x74b8fc;
+--dialog:置き換え後, local mask_name="mask"; 色/col,local color=0x74b8fc; マスク代用/chk, local no_mask=0; Xトリム, local trim_x=0; Yトリム, local trim_y=0; Xオフセット, local offset_x=0; Yオフセット, local offset_y=0;
 
 require("rikky_module")
 
@@ -511,16 +511,26 @@ local y		= obj.y + obj.oy + obj.cy + oy
 local zoom	= obj.getvalue("zoom")/100
 local rz	= obj.rz
 local w,h	= obj.getpixel()
+local screen_w = obj.screen_w
+local screen_h = obj.screen_h
 local x		= x/zoom
 local y		= y/zoom
 local dfx,dfy	= rot(-x,-y,-rz)
+
+print(x, y, dfx, dfy)
 
 local img_path = object_info["file"]
 local mask_path = string.gsub(img_path, active_name, mask_name)
 
 obj.setoption("drawtarget","tempbuffer",w,h)
 
-obj.load("framebuffer")
+if (no_mask == 0) then
+    obj.load("framebuffer")
+elseif (no_mask == 1) then
+    obj.load("framebuffer", (screen_w / 2) + (w / 2 * -1) + x + offset_x + (trim_x / 2), (screen_h / 2) + (h / 2 * -1) + y + offset_y + (trim_y / 2), w - trim_x, h - trim_y)
+end
+
+
 obj.effect("ぼかし","範囲",blur,"サイズ固定",1)
 if(color~=nil)then
 	obj.effect("単色化","強さ",c_pow,"color",color,"輝度を保持する",0)
@@ -528,9 +538,17 @@ end
 if(c_hue~=0)then
 	obj.effect("色調補正","色相",c_hue)
 end
-obj.draw(dfx,dfy,0,1/zoom,1,0,0,-rz)
 
-obj.load("image", mask_path)
+if (no_mask == 0) then
+    obj.draw(dfx,dfy,0,1/zoom,1,0,0,-rz)
+elseif (no_mask == 1) then
+    obj.draw(0 + offset_x, 0 + offset_y, 0, 1/zoom,1,0,0,-rz)
+end
+
+if (no_mask == 0) then
+    obj.load("image", mask_path)
+end
+
 obj.setoption("blend","alpha_sub")
 obj.effect("反転","透明度反転",1)
 obj.draw()
