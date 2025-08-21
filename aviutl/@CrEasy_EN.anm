@@ -475,27 +475,27 @@ local dfx,dfy = rot(-bx,-by,-rz)
 
 obj.setoption("drawtarget","tempbuffer",w,h)
 
-if (no_mask == 1 or limit_switch == 1) then
+if (alt_mask_switch == 1 or limit_switch == 1) then
     obj.load("framebuffer", (screen_w / 2) + (w / 2 * -1 * all_zoom) + bx + offset_x + (trim_x / 2), (screen_h / 2) + (h / 2 * -1 * all_zoom) + by + offset_y + (trim_y / 2), (w - trim_x) * all_zoom, (h - trim_y) * all_zoom)
 else
     obj.load("framebuffer")
 end
 
 obj.effect("ぼかし","範囲",blur,"サイズ固定",1)
-if (color ~= nil) then
-	obj.effect("単色化","強さ",color_power,"color",color,"輝度を保持する",0)
+if (blur_color ~= nil) then
+	obj.effect("単色化","強さ",color_power,"color",blur_color,"輝度を保持する",0)
 end
 if (color_hue ~= 0) then
 	obj.effect("色調補正","色相",color_hue)
 end
 
-if (no_mask == 1 or limit_switch == 1) then
+if (alt_mask_switch == 1 or limit_switch == 1) then
     obj.draw(offset_x, offset_y, 0, 1/all_zoom, 1, 0, 0, 0)
 else
     obj.draw(dfx, dfy, 0, 1/all_zoom, 1, 0, 0, -rz)
 end
 
-if (no_mask == 0) then
+if (alt_mask_switch == 0) then
     obj.load("image", mask_path)
 end
 
@@ -565,27 +565,27 @@ local dfx,dfy = rot(-bx,-by,-rz)
 
 obj.setoption("drawtarget","tempbuffer",w,h)
 
-if (no_mask == 1 or limit_switch == 1) then
+if (alt_mask_switch == 1 or limit_switch == 1) then
     obj.load("framebuffer", (screen_w / 2) + (w / 2 * -1 * all_zoom) + bx + offset_x + (trim_x / 2), (screen_h / 2) + (h / 2 * -1 * all_zoom) + by + offset_y + (trim_y / 2), (w - trim_x) * all_zoom, (h - trim_y) * all_zoom)
 else
     obj.load("framebuffer")
 end
 
 obj.effect("ぼかし","範囲",blur,"サイズ固定",1)
-if (color ~= nil) then
-	obj.effect("単色化","強さ",color_power,"color",color,"輝度を保持する",0)
+if (blur_color ~= nil) then
+	obj.effect("単色化","強さ",color_power,"color",blur_color,"輝度を保持する",0)
 end
 if (color_hue ~= 0) then
 	obj.effect("色調補正","色相",color_hue)
 end
 
-if (no_mask == 1 or limit_switch == 1) then
+if (alt_mask_switch == 1 or limit_switch == 1) then
     obj.draw(offset_x, offset_y, 0, 1/all_zoom, 1, 0, 0, 0)
 else
     obj.draw(dfx, dfy, 0, 1/all_zoom, 1, 0, 0, -rz)
 end
 
-if (no_mask == 0) then
+if (alt_mask_switch == 0) then
     obj.load("image", mask_path)
 end
 

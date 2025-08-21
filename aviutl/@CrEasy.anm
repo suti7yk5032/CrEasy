@@ -428,7 +428,7 @@ end
 --track0:ぼかし,0,100,5,1
 --track1:単色化,0,100,42
 --track2:色相,-3600,3600,0,0.1
---dialog:置き換え前, local active_name="b1"; 置き換え後, local mask_name="mask"; 色/col,local color=0x74b8fc; マスク代用/chk, local no_mask=0; Xトリム, local trim_x=0; Yトリム, local trim_y=0; Xオフセット, local offset_x=0; Yオフセット, local offset_y=0; 軽量化/chk, local limit_switch=0;
+--dialog:置き換え前, local active_name="b1"; 置き換え後, local mask_name="mask"; 色/col,local blur_color=0x74b8fc; マスク代用/chk, local alt_mask_switch=0; Xトリム, local trim_x=0; Yトリム, local trim_y=0; Xオフセット, local offset_x=0; Yオフセット, local offset_y=0; 軽量化/chk, local limit_switch=0;
 
 require("rikky_module")
 
@@ -474,27 +474,27 @@ local dfx,dfy = rot(-bx,-by,-rz)
 
 obj.setoption("drawtarget","tempbuffer",w,h)
 
-if (no_mask == 1 or limit_switch == 1) then
+if (alt_mask_switch == 1 or limit_switch == 1) then
     obj.load("framebuffer", (screen_w / 2) + (w / 2 * -1 * all_zoom) + bx + offset_x + (trim_x / 2), (screen_h / 2) + (h / 2 * -1 * all_zoom) + by + offset_y + (trim_y / 2), (w - trim_x) * all_zoom, (h - trim_y) * all_zoom)
 else
     obj.load("framebuffer")
 end
 
 obj.effect("ぼかし","範囲",blur,"サイズ固定",1)
-if (color ~= nil) then
-	obj.effect("単色化","強さ",color_power,"color",color,"輝度を保持する",0)
+if (blur_color ~= nil) then
+	obj.effect("単色化","強さ",color_power,"color",blur_color,"輝度を保持する",0)
 end
 if (color_hue ~= 0) then
 	obj.effect("色調補正","色相",color_hue)
 end
 
-if (no_mask == 1 or limit_switch == 1) then
+if (alt_mask_switch == 1 or limit_switch == 1) then
     obj.draw(offset_x, offset_y, 0, 1/all_zoom, 1, 0, 0, 0)
 else
     obj.draw(dfx, dfy, 0, 1/all_zoom, 1, 0, 0, -rz)
 end
 
-if (no_mask == 0) then
+if (alt_mask_switch == 0) then
     obj.load("image", mask_path)
 end
 
@@ -519,7 +519,7 @@ obj.load("tempbuffer")
 --track0:ぼかし,0,100,5,1
 --track1:単色化,0,100,42
 --track2:色相,-3600,3600,0,0.1
---dialog:置き換え後, local mask_name="mask"; 色/col,local color=0x74b8fc; マスク代用/chk, local no_mask=0; Xトリム, local trim_x=0; Yトリム, local trim_y=0; Xオフセット, local offset_x=0; Yオフセット, local offset_y=0; 軽量化/chk, local limit_switch=0;
+--dialog:置き換え後, local mask_name="mask"; 色/col,local blur_color=0x74b8fc; マスク代用/chk, local alt_mask_switch=0; Xトリム, local trim_x=0; Yトリム, local trim_y=0; Xオフセット, local offset_x=0; Yオフセット, local offset_y=0; 軽量化/chk, local limit_switch=0;
 
 require("rikky_module")
 
@@ -564,27 +564,27 @@ local dfx,dfy = rot(-bx,-by,-rz)
 
 obj.setoption("drawtarget","tempbuffer",w,h)
 
-if (no_mask == 1 or limit_switch == 1) then
+if (alt_mask_switch == 1 or limit_switch == 1) then
     obj.load("framebuffer", (screen_w / 2) + (w / 2 * -1 * all_zoom) + bx + offset_x + (trim_x / 2), (screen_h / 2) + (h / 2 * -1 * all_zoom) + by + offset_y + (trim_y / 2), (w - trim_x) * all_zoom, (h - trim_y) * all_zoom)
 else
     obj.load("framebuffer")
 end
 
 obj.effect("ぼかし","範囲",blur,"サイズ固定",1)
-if (color ~= nil) then
-	obj.effect("単色化","強さ",color_power,"color",color,"輝度を保持する",0)
+if (blur_color ~= nil) then
+	obj.effect("単色化","強さ",color_power,"color",blur_color,"輝度を保持する",0)
 end
 if (color_hue ~= 0) then
 	obj.effect("色調補正","色相",color_hue)
 end
 
-if (no_mask == 1 or limit_switch == 1) then
+if (alt_mask_switch == 1 or limit_switch == 1) then
     obj.draw(offset_x, offset_y, 0, 1/all_zoom, 1, 0, 0, 0)
 else
     obj.draw(dfx, dfy, 0, 1/all_zoom, 1, 0, 0, -rz)
 end
 
-if (no_mask == 0) then
+if (alt_mask_switch == 0) then
     obj.load("image", mask_path)
 end
 
