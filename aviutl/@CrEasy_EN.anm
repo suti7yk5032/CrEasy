@@ -203,6 +203,7 @@ if (pass_switch == 0) then
 end
 
 
+
 @CrEasy_sep
 --track0:X Grid,0,5000,0,1
 --track1:Y Grid,0,5000,0,1
@@ -400,6 +401,7 @@ if (pass_switch == 0) then
 end
 
 
+
 @Coordinate_NoSubpixel
 --track0:X,-10000,10000,0,1
 --track1:Y,-10000,10000,0,1
@@ -419,6 +421,7 @@ else
 end
 
 
+
 @BackBlur
 -- The original script is AeroGlass風@hksy 
 -- The original creator is 白水. Thanks!
@@ -426,13 +429,10 @@ end
 --track0:Blur,0,100,5,1
 --track1:Color,0,100,42
 --track2:Hue,-3600,3600,0,0.1
---dialog:Filename before, local active_name="b1"; Filename after, local mask_name="mask"; Color/col,local color=0x74b8fc;
+--dialog:Filename before, local active_name="b1"; Filename after, local mask_name="mask"; Color/col,local color=0x74b8fc; Alt mask/chk, local no_mask=0; X trim, local trim_x=0; Y trim, local trim_y=0; X offset, local offset_x=0; Y offset, local offset_y=0; Buffer Limit/chk, local limit_switch=0;
 
 require("rikky_module")
 
-local function range(r1, r2, v)
-	return math.max(r1, math.min(r2, v))
-end
 local function rot(x,y,r)
 	local rad = r/180*math.pi
 	local sin = math.sin(rad)
@@ -440,45 +440,77 @@ local function rot(x,y,r)
 	return	x*cos-y*sin, x*sin+y*cos
 end
 
-local blur	= obj.track0
-local c_pow = obj.track1
-local c_hue = obj.track2
-
-local x		= obj.x + obj.ox + obj.cx
-local y		= obj.y + obj.oy + obj.cy
-local zoom	= obj.getvalue("zoom")/100
-local rz	= obj.rz
-local w,h	= obj.getpixel()
-local x		= x/zoom
-local y		= y/zoom
-local dfx,dfy	= rot(-x,-y,-rz)
+local blur = obj.track0
+local color_power = obj.track1
+local color_hue = obj.track2
 
 local object_type, object_info = rikky_module.getinfo("object")
+local group_ctl_table, group_ctl_bool = rikky_module.getinfo("group")
 local img_path = object_info["file"]
 local mask_path = string.gsub(img_path, active_name, mask_name)
 
+local w,h	= obj.getpixel()
+local screen_w = obj.screen_w
+local screen_h = obj.screen_h
+local zoom	= obj.getvalue("zoom")/100
+local group_zoom = group_ctl_table["zoom"]
+local all_zoom = zoom + (group_zoom - 1)
+
+local x		= obj.x + obj.ox + obj.cx * zoom
+local y		= obj.y + obj.oy + obj.cy * zoom
+local z     = obj.z + obj.oz + obj.cz * zoom
+local rz	= obj.rz
+
+if (group_ctl_bool == true) then
+    bx = (group_ctl_table["Xx"] * x + group_ctl_table["Yx"] * y + group_ctl_table["Zx"] * z) * group_zoom + group_ctl_table["x"]
+    by = (group_ctl_table["Xy"] * x + group_ctl_table["Yy"] * y + group_ctl_table["Zy"] * z) * group_zoom + group_ctl_table["y"]
+    bz = (group_ctl_table["Xz"] * x + group_ctl_table["Yz"] * y + group_ctl_table["Zz"] * z) * group_zoom + group_ctl_table["z"]
+else
+    bx = x
+    by = y
+    bz = z
+end
+
+local dfx,dfy = rot(-bx,-by,-rz)
+
 obj.setoption("drawtarget","tempbuffer",w,h)
 
-obj.load("framebuffer")
-obj.effect("Blur","Range",blur,"Size Fix",1)
-if(color~=nil)then
-	obj.effect("Monochromatic","Strength",c_pow,"color",color,"Keep luminance",0)
+if (no_mask == 1 or limit_switch == 1) then
+    obj.load("framebuffer", (screen_w / 2) + (w / 2 * -1 * all_zoom) + bx + offset_x + (trim_x / 2), (screen_h / 2) + (h / 2 * -1 * all_zoom) + by + offset_y + (trim_y / 2), (w - trim_x) * all_zoom, (h - trim_y) * all_zoom)
+else
+    obj.load("framebuffer")
 end
-if(c_hue~=0)then
-	obj.effect("Color Correction","Hue",c_hue)
-end
-obj.draw(dfx,dfy,0,1/zoom,1,0,0,-rz)
 
-obj.load("image", mask_path)
+obj.effect("ぼかし","範囲",blur,"サイズ固定",1)
+if (color ~= nil) then
+	obj.effect("単色化","強さ",color_power,"color",color,"輝度を保持する",0)
+end
+if (color_hue ~= 0) then
+	obj.effect("色調補正","色相",color_hue)
+end
+
+if (no_mask == 1 or limit_switch == 1) then
+    obj.draw(offset_x, offset_y, 0, 1/all_zoom, 1, 0, 0, 0)
+else
+    obj.draw(dfx, dfy, 0, 1/all_zoom, 1, 0, 0, -rz)
+end
+
+if (no_mask == 0) then
+    obj.load("image", mask_path)
+end
+
 obj.setoption("blend","alpha_sub")
-obj.effect("Reversal","Transparency inversion",1)
+obj.effect("反転","透明度反転",1)
 obj.draw()
 
 obj.setoption("blend",0)
+
 obj.load("image", img_path)
+
 obj.draw()
 
 obj.load("tempbuffer")
+
 
 
 @BackBlur_for_CrEasy
@@ -488,13 +520,10 @@ obj.load("tempbuffer")
 --track0:Blur,0,100,5,1
 --track1:Color,0,100,42
 --track2:Hue,-3600,3600,0,0.1
---dialog:Filename after, local mask_name="mask"; Color/col,local color=0x74b8fc; Alt mask/chk, local no_mask=0; Color/col,local color=0x74b8fc; X trim, local trim_x=0; Y trim, local trim_y=0; X offset, local offset_x=0; Y offset, local offset_y=0;
+--dialog:Filename after, local mask_name="mask"; Color/col,local color=0x74b8fc; Alt mask/chk, local no_mask=0; X trim, local trim_x=0; Y trim, local trim_y=0; X offset, local offset_x=0; Y offset, local offset_y=0; Buffer Limit/chk, local limit_switch=0;
 
 require("rikky_module")
 
-local function range(r1, r2, v)
-	return math.max(r1, math.min(r2, v))
-end
 local function rot(x,y,r)
 	local rad = r/180*math.pi
 	local sin = math.sin(rad)
@@ -502,47 +531,58 @@ local function rot(x,y,r)
 	return	x*cos-y*sin, x*sin+y*cos
 end
 
-local blur	= obj.track0
-local c_pow = obj.track1
-local c_hue = obj.track2
+local blur = obj.track0
+local color_power = obj.track1
+local color_hue = obj.track2
 
-local x		= obj.x + obj.ox + obj.cx + ox
-local y		= obj.y + obj.oy + obj.cy + oy
-local zoom	= obj.getvalue("zoom")/100
-local rz	= obj.rz
-local w,h	= obj.getpixel()
-local screen_w = obj.screen_w
-local screen_h = obj.screen_h
-local x		= x/zoom
-local y		= y/zoom
-local dfx,dfy	= rot(-x,-y,-rz)
-
-print(x, y, dfx, dfy)
-
+local group_ctl_table, group_ctl_bool = rikky_module.getinfo("group")
 local img_path = object_info["file"]
 local mask_path = string.gsub(img_path, active_name, mask_name)
 
+local w,h	= obj.getpixel()
+local screen_w = obj.screen_w
+local screen_h = obj.screen_h
+local zoom	= obj.getvalue("zoom")/100
+local group_zoom = group_ctl_table["zoom"]
+local all_zoom = zoom + (group_zoom - 1)
+
+local x		= obj.x + obj.ox + obj.cx + ox * zoom
+local y		= obj.y + obj.oy + obj.cy + oy * zoom
+local z     = obj.z + obj.oz + obj.cz + oz * zoom
+local rz	= obj.rz
+
+if (group_ctl_bool == true) then
+    bx = (group_ctl_table["Xx"] * x + group_ctl_table["Yx"] * y + group_ctl_table["Zx"] * z) * group_zoom + group_ctl_table["x"]
+    by = (group_ctl_table["Xy"] * x + group_ctl_table["Yy"] * y + group_ctl_table["Zy"] * z) * group_zoom + group_ctl_table["y"]
+    bz = (group_ctl_table["Xz"] * x + group_ctl_table["Yz"] * y + group_ctl_table["Zz"] * z) * group_zoom + group_ctl_table["z"]
+else
+    bx = x
+    by = y
+    bz = z
+end
+
+local dfx,dfy = rot(-bx,-by,-rz)
+
 obj.setoption("drawtarget","tempbuffer",w,h)
 
-if (no_mask == 0) then
+if (no_mask == 1 or limit_switch == 1) then
+    obj.load("framebuffer", (screen_w / 2) + (w / 2 * -1 * all_zoom) + bx + offset_x + (trim_x / 2), (screen_h / 2) + (h / 2 * -1 * all_zoom) + by + offset_y + (trim_y / 2), (w - trim_x) * all_zoom, (h - trim_y) * all_zoom)
+else
     obj.load("framebuffer")
-elseif (no_mask == 1) then
-    obj.load("framebuffer", (screen_w / 2) + (w / 2 * -1) + x + offset_x + (trim_x / 2), (screen_h / 2) + (h / 2 * -1) + y + offset_y + (trim_y / 2), w - trim_x, h - trim_y)
 end
 
-
-obj.effect("Blur","Range",blur,"Size Fix",1)
-if(color~=nil)then
-	obj.effect("Monochromatic","Strength",c_pow,"color",color,"Keep luminance",0)
+obj.effect("ぼかし","範囲",blur,"サイズ固定",1)
+if (color ~= nil) then
+	obj.effect("単色化","強さ",color_power,"color",color,"輝度を保持する",0)
 end
-if(c_hue~=0)then
-	obj.effect("Color Correction","Hue",c_hue)
+if (color_hue ~= 0) then
+	obj.effect("色調補正","色相",color_hue)
 end
 
-if (no_mask == 0) then
-    obj.draw(dfx,dfy,0,1/zoom,1,0,0,-rz)
-elseif (no_mask == 1) then
-    obj.draw(0 + offset_x, 0 + offset_y, 0, 1/zoom,1,0,0,-rz)
+if (no_mask == 1 or limit_switch == 1) then
+    obj.draw(offset_x, offset_y, 0, 1/all_zoom, 1, 0, 0, 0)
+else
+    obj.draw(dfx, dfy, 0, 1/all_zoom, 1, 0, 0, -rz)
 end
 
 if (no_mask == 0) then
@@ -550,10 +590,11 @@ if (no_mask == 0) then
 end
 
 obj.setoption("blend","alpha_sub")
-obj.effect("Reversal","Transparency inversion",1)
+obj.effect("反転","透明度反転",1)
 obj.draw()
 
 obj.setoption("blend",0)
+
 if (inactive_flag == 0) then
     obj.load("image", img_path)
 elseif (inactive_flag == 1) then
