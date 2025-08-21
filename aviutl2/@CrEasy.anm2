@@ -182,7 +182,7 @@ end
 
 
 --track@blur:ぼかし,0,100,5,1
---track@c_pow:単色化,0,100,0,1
+--track@color_power:単色化,0,100,0,1
 --color@blur_color:色,0x000000,0xffffff,0x74b8fc
 --file@mask_path:マスクファイル
 --check@alt_mask_switch:マスク代用,0
@@ -190,11 +190,8 @@ end
 --track@offset_y:Yオフセット,-10000,10000,0,1
 --track@trim_x:Xトリム,0,10000,0,1
 --track@trim_y:Yトリム,0,10000,0,1
+--check@limit_switch:軽量化,0
 
-
-local function range(r1, r2, v)
-	return math.max(r1, math.min(r2, v))
-end
 
 local function rot(x,y,r)
 	local rad = r/180*math.pi
@@ -203,44 +200,45 @@ local function rot(x,y,r)
 	return	x*cos-y*sin, x*sin+y*cos
 end
 
-
-local x		= obj.x + obj.ox + obj.cx + ox
-local y		= obj.y + obj.oy + obj.cy + oy
-local zoom	= obj.getvalue("zoom")/100
-local rz	= obj.rz
 local w,h	= obj.getpixel()
 local screen_w = obj.screen_w
 local screen_h = obj.screen_h
-local x		= x/zoom
-local y		= y/zoom
-local dfx,dfy	= rot(-x,-y,-rz)
+local zoom	= obj.getvalue("zoom")/100
+local all_zoom = zoom
 
-obj.copybuffer("cache:obj", "object")
+local x		= obj.x + obj.ox + obj.cx + ox * zoom
+local y		= obj.y + obj.oy + obj.cy + oy * zoom
+local z     = obj.z + obj.oz + obj.cz + oz * zoom
+local rz	= obj.rz
+
+local bx = x
+local by = y
+local bz = z
+
+local dfx,dfy = rot(-bx,-by,-rz)
 
 obj.setoption("drawtarget","tempbuffer",w,h)
 
-if (alt_mask_switch == 0) then
-    obj.load("framebuffer", true)
-elseif (alt_mask_switch == 1) then
-    obj.load("framebuffer", (screen_w / 2) + (w / 2 * -1) + x + offset_x + (trim_x / 2), (screen_h / 2) + (h / 2 * -1) + y + offset_y + (trim_y / 2), w - trim_x, h - trim_y, true)
+if (alt_mask_switch == 1 or limit_switch == 1) then
+    obj.load("framebuffer", (screen_w / 2) + (w / 2 * -1 * all_zoom) + bx + offset_x + (trim_x / 2), (screen_h / 2) + (h / 2 * -1 * all_zoom) + by + offset_y + (trim_y / 2), (w - trim_x) * all_zoom, (h - trim_y) * all_zoom)
+else
+    obj.load("framebuffer")
 end
 
 obj.effect("ぼかし","範囲",blur,"サイズ固定",1)
 
-if (c_pow > 0)then
-	obj.effect("単色化","強さ",c_pow,"color",blur_color,"輝度を保持する",0)
+if (color_power > 0) then
+	obj.effect("単色化","強さ",color_power,"color",blur_color,"輝度を保持する",0)
 end
 
-if (alt_mask_switch == 0) then
-    obj.draw(dfx,dfy,0,1/zoom,1,0,0,-rz)
-elseif (alt_mask_switch == 1) then
-    obj.draw(0 + offset_x, 0 + offset_y, 0, 1/zoom,1,0,0,-rz)
+if (alt_mask_switch == 1 or limit_switch == 1) then
+    obj.draw(offset_x, offset_y, 0, 1/all_zoom, 1, 0, 0, 0)
+else
+    obj.draw(dfx, dfy, 0, 1/all_zoom, 1, 0, 0, -rz)
 end
 
 if (alt_mask_switch == 0) then
     obj.load("image", mask_path)
-elseif (alt_mask_switch == 1) then
-    print("dummy")
 end
 
 obj.setoption("blend","alpha_sub")
