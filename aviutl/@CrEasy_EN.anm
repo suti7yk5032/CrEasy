@@ -481,12 +481,12 @@ else
     obj.load("framebuffer")
 end
 
-obj.effect("ぼかし","範囲",blur,"サイズ固定",1)
+obj.effect("Blur","Range",blur,"Size Fix",1)
 if (blur_color ~= nil) then
-	obj.effect("単色化","強さ",color_power,"color",blur_color,"輝度を保持する",0)
+	obj.effect("Monochromatic","Strength",c_pow,"color",color,"Keep luminance",0)
 end
 if (color_hue ~= 0) then
-	obj.effect("色調補正","色相",color_hue)
+	obj.effect("Color Correction","Hue",c_hue)
 end
 
 if (alt_mask_switch == 1 or limit_switch == 1) then
@@ -500,7 +500,7 @@ if (alt_mask_switch == 0) then
 end
 
 obj.setoption("blend","alpha_sub")
-obj.effect("反転","透明度反転",1)
+obj.effect("Reversal","Transparency inversion",1)
 obj.draw()
 
 obj.setoption("blend",0)
@@ -571,12 +571,12 @@ else
     obj.load("framebuffer")
 end
 
-obj.effect("ぼかし","範囲",blur,"サイズ固定",1)
+obj.effect("Blur","Range",blur,"Size Fix",1)
 if (blur_color ~= nil) then
-	obj.effect("単色化","強さ",color_power,"color",blur_color,"輝度を保持する",0)
+	obj.effect("Monochromatic","Strength",c_pow,"color",color,"Keep luminance",0)
 end
 if (color_hue ~= 0) then
-	obj.effect("色調補正","色相",color_hue)
+	obj.effect("Color Correction","Hue",c_hue)
 end
 
 if (alt_mask_switch == 1 or limit_switch == 1) then
@@ -590,7 +590,7 @@ if (alt_mask_switch == 0) then
 end
 
 obj.setoption("blend","alpha_sub")
-obj.effect("反転","透明度反転",1)
+obj.effect("Reversal","Transparency inversion",1)
 obj.draw()
 
 obj.setoption("blend",0)

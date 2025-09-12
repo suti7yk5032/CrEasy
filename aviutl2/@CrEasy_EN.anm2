@@ -157,7 +157,7 @@ end
 
 
 
-@座標_サブピクセル無効
+@Coordinate_NoSubpixel
 --track@x:X,-10000,10000,0,1
 --track@y:Y,-10000,10000,0,1
 --track@z:Z,-10000,10000,0,1
@@ -176,7 +176,7 @@ end
 
 
 
-@背景ブラー_for_CrEasy
+@BackBlur_for_CrEasy
 -- The original script is AeroGlass風@hksy 
 -- The original creator is 白水. Thanks!
 
