@@ -31,7 +31,7 @@ if (pass_switch == 1) then
     inactive_flag = 0
 end
 
-if (inactive_switch == true) then
+if (inactive_switch) then
     if (object_info["file"] == nil) then
         inactive_path = "a"
     else
@@ -239,7 +239,7 @@ if (pass_switch == 1) then
     inactive_flag = 0
 end
 
-if (inactive_switch == true) then
+if (inactive_switch) then
     if (object_info["file"] == nil) then
         inactive_path = "a"
     else
@@ -401,7 +401,6 @@ if (pass_switch == 0) then
 end
 
 
-
 @Coordinate_NoSubpixel
 --track0:X,-10000,10000,0,1
 --track1:Y,-10000,10000,0,1
@@ -410,7 +409,7 @@ end
 
 local pass_switch = obj.check0
 
-if (pass_switch == true) then
+if (pass_switch) then
     ox = ox + math.ceil(obj.track0)
     oy = oy + math.ceil(obj.track1)
     oz = oz + math.ceil(obj.track2)
@@ -429,7 +428,7 @@ end
 --track0:Blur,0,100,5,1
 --track1:Color,0,100,42
 --track2:Hue,-3600,3600,0,0.1
---dialog:Filename before, local active_name="b1"; Filename after, local mask_name="mask"; Color/col,local color=0x74b8fc; Alt mask/chk, local no_mask=0; X trim, local trim_x=0; Y trim, local trim_y=0; X offset, local offset_x=0; Y offset, local offset_y=0; Buffer Limit/chk, local limit_switch=0;
+--dialog:Filename before, local active_name="b1"; Filename after, local mask_name="mask"; Color/col,local blur_color=0x74b8fc; Alt mask/chk, local alt_mask_switch=0; X trim, local trim_x=0; Y trim, local trim_y=0; X offset, local offset_x=0; Y offset, local offset_y=0; Buffer Limit/chk, local limit_switch=0;
 
 require("rikky_module")
 
@@ -440,59 +439,85 @@ local function rot(x,y,r)
 	return	x*cos-y*sin, x*sin+y*cos
 end
 
-local blur = obj.track0
+local blur_power = obj.track0
 local color_power = obj.track1
 local color_hue = obj.track2
 
-local object_type, object_info = rikky_module.getinfo("object")
 local group_ctl_table, group_ctl_bool = rikky_module.getinfo("group")
 local img_path = object_info["file"]
 local mask_path = string.gsub(img_path, active_name, mask_name)
 
-local w,h	= obj.getpixel()
+local w,h = obj.getpixel()
 local screen_w = obj.screen_w
 local screen_h = obj.screen_h
-local zoom	= obj.getvalue("zoom")/100
-local group_zoom = group_ctl_table["zoom"]
-local all_zoom = zoom + (group_zoom - 1)
 
-local x		= obj.x + obj.ox + obj.cx * zoom
-local y		= obj.y + obj.oy + obj.cy * zoom
-local z     = obj.z + obj.oz + obj.cz * zoom
-local rz	= obj.rz
+local x = (obj.x + obj.ox + obj.cx + ox)
+local y = (obj.y + obj.oy + obj.cy + oy)
+local z = (obj.z + obj.oz + obj.cz + oz)
+local rz = obj.rz
 
-if (group_ctl_bool == true) then
-    bx = (group_ctl_table["Xx"] * x + group_ctl_table["Yx"] * y + group_ctl_table["Zx"] * z) * group_zoom + group_ctl_table["x"]
-    by = (group_ctl_table["Xy"] * x + group_ctl_table["Yy"] * y + group_ctl_table["Zy"] * z) * group_zoom + group_ctl_table["y"]
-    bz = (group_ctl_table["Xz"] * x + group_ctl_table["Yz"] * y + group_ctl_table["Zz"] * z) * group_zoom + group_ctl_table["z"]
-else
-    bx = x
-    by = y
-    bz = z
+local blur_x = x
+local blur_y = y
+local blur_z = z
+
+if (group_ctl_bool) then
+    blur_x = (group_ctl_table["Xx"] * x + group_ctl_table["Yx"] * y + group_ctl_table["Zx"] * z) + group_ctl_table["x"]
+    blur_y = (group_ctl_table["Xy"] * x + group_ctl_table["Yy"] * y + group_ctl_table["Zy"] * z) + group_ctl_table["y"]
+    blur_z = (group_ctl_table["Xz"] * x + group_ctl_table["Yz"] * y + group_ctl_table["Zz"] * z) + group_ctl_table["z"]
 end
 
-local dfx,dfy = rot(-bx,-by,-rz)
 
 obj.setoption("drawtarget","tempbuffer",w,h)
 
 if (alt_mask_switch == 1 or limit_switch == 1) then
-    obj.load("framebuffer", (screen_w / 2) + (w / 2 * -1 * all_zoom) + bx + offset_x + (trim_x / 2), (screen_h / 2) + (h / 2 * -1 * all_zoom) + by + offset_y + (trim_y / 2), (w - trim_x) * all_zoom, (h - trim_y) * all_zoom)
+    local lx = (screen_w / 2) + (w / 2 * -1) + blur_x + offset_x + (trim_x / 2)
+    local rx = (screen_w / 2) + (w / 2) + blur_x + offset_x + (trim_x / 2)
+    local ty = (screen_h / 2) + (h / 2 * -1) + blur_y + offset_y + (trim_y / 2)
+    local uy = (screen_h / 2) + (h / 2) + blur_y + offset_y + (trim_y / 2)
+
+    local trim_w_limit = 0
+    local trim_h_limit = 0
+
+    local flx = lx
+    local fty = ty
+
+    if (rx > screen_w) then
+        trim_w_limit = rx - screen_w
+        offset_x = (rx - screen_w) * -1 / 2
+    elseif (lx < 0) then
+        flx = 0
+        trim_w_limit = lx * -1
+        offset_x = (lx * -1) / 2
+    end
+
+    if (uy > screen_h) then
+        trim_h_limit = uy - screen_h
+        offset_y = (uy - screen_h) * -1 / 2
+    elseif (ty < 0) then
+        fty = 0
+        trim_h_limit = ty * -1
+        offset_y = (ty * -1) / 2
+    end
+
+    obj.load("framebuffer", flx, fty, (w - trim_x - trim_w_limit), (h - trim_y - trim_h_limit))
 else
     obj.load("framebuffer")
 end
 
-obj.effect("Blur","Range",blur,"Size Fix",1)
+
+obj.effect("Blur","Range",blur_power,"Size Fix",1)
 if (blur_color ~= nil) then
-	obj.effect("Monochromatic","Strength",c_pow,"color",color,"Keep luminance",0)
+	obj.effect("Monochromatic","Strength",color_power,"color",blur_color,"Keep luminance",0)
 end
 if (color_hue ~= 0) then
-	obj.effect("Color Correction","Hue",c_hue)
+	obj.effect("Color Correction","Hue",color_hue)
 end
 
 if (alt_mask_switch == 1 or limit_switch == 1) then
-    obj.draw(offset_x, offset_y, 0, 1/all_zoom, 1, 0, 0, 0)
+    obj.draw(offset_x, offset_y, 0, 1, 1, 0, 0, 0)
 else
-    obj.draw(dfx, dfy, 0, 1/all_zoom, 1, 0, 0, -rz)
+    local dfx,dfy = rot(-blur_x,-blur_y,-rz)
+    obj.draw(dfx, dfy, 0, 1, 1, 0, 0, -rz)
 end
 
 if (alt_mask_switch == 0) then
@@ -502,13 +527,11 @@ end
 obj.setoption("blend","alpha_sub")
 obj.effect("Reversal","Transparency inversion",1)
 obj.draw()
-
 obj.setoption("blend",0)
 
 obj.load("image", img_path)
 
 obj.draw()
-
 obj.load("tempbuffer")
 
 
@@ -520,7 +543,7 @@ obj.load("tempbuffer")
 --track0:Blur,0,100,5,1
 --track1:Color,0,100,42
 --track2:Hue,-3600,3600,0,0.1
---dialog:Filename after, local mask_name="mask"; Color/col,local color=0x74b8fc; Alt mask/chk, local no_mask=0; X trim, local trim_x=0; Y trim, local trim_y=0; X offset, local offset_x=0; Y offset, local offset_y=0; Buffer Limit/chk, local limit_switch=0;
+--dialog:Filename after, local mask_name="mask"; Color/col,local blur_color=0x74b8fc; Alt mask/chk, local alt_mask_switch=0; X trim, local trim_x=0; Y trim, local trim_y=0; X offset, local offset_x=0; Y offset, local offset_y=0; Buffer Limit/chk, local limit_switch=0;
 
 require("rikky_module")
 
@@ -531,7 +554,7 @@ local function rot(x,y,r)
 	return	x*cos-y*sin, x*sin+y*cos
 end
 
-local blur = obj.track0
+local blur_power = obj.track0
 local color_power = obj.track1
 local color_hue = obj.track2
 
@@ -539,50 +562,77 @@ local group_ctl_table, group_ctl_bool = rikky_module.getinfo("group")
 local img_path = object_info["file"]
 local mask_path = string.gsub(img_path, active_name, mask_name)
 
-local w,h	= obj.getpixel()
+local w,h = obj.getpixel()
 local screen_w = obj.screen_w
 local screen_h = obj.screen_h
-local zoom	= obj.getvalue("zoom")/100
-local group_zoom = group_ctl_table["zoom"]
-local all_zoom = zoom + (group_zoom - 1)
 
-local x		= obj.x + obj.ox + obj.cx + ox * zoom
-local y		= obj.y + obj.oy + obj.cy + oy * zoom
-local z     = obj.z + obj.oz + obj.cz + oz * zoom
-local rz	= obj.rz
+local x = (obj.x + obj.ox + obj.cx + ox)
+local y = (obj.y + obj.oy + obj.cy + oy)
+local z = (obj.z + obj.oz + obj.cz + oz)
+local rz = obj.rz
 
-if (group_ctl_bool == true) then
-    bx = (group_ctl_table["Xx"] * x + group_ctl_table["Yx"] * y + group_ctl_table["Zx"] * z) * group_zoom + group_ctl_table["x"]
-    by = (group_ctl_table["Xy"] * x + group_ctl_table["Yy"] * y + group_ctl_table["Zy"] * z) * group_zoom + group_ctl_table["y"]
-    bz = (group_ctl_table["Xz"] * x + group_ctl_table["Yz"] * y + group_ctl_table["Zz"] * z) * group_zoom + group_ctl_table["z"]
-else
-    bx = x
-    by = y
-    bz = z
+local blur_x = x
+local blur_y = y
+local blur_z = z
+
+if (group_ctl_bool) then
+    blur_x = (group_ctl_table["Xx"] * x + group_ctl_table["Yx"] * y + group_ctl_table["Zx"] * z) + group_ctl_table["x"]
+    blur_y = (group_ctl_table["Xy"] * x + group_ctl_table["Yy"] * y + group_ctl_table["Zy"] * z) + group_ctl_table["y"]
+    blur_z = (group_ctl_table["Xz"] * x + group_ctl_table["Yz"] * y + group_ctl_table["Zz"] * z) + group_ctl_table["z"]
 end
 
-local dfx,dfy = rot(-bx,-by,-rz)
 
 obj.setoption("drawtarget","tempbuffer",w,h)
 
 if (alt_mask_switch == 1 or limit_switch == 1) then
-    obj.load("framebuffer", (screen_w / 2) + (w / 2 * -1 * all_zoom) + bx + offset_x + (trim_x / 2), (screen_h / 2) + (h / 2 * -1 * all_zoom) + by + offset_y + (trim_y / 2), (w - trim_x) * all_zoom, (h - trim_y) * all_zoom)
+    local lx = (screen_w / 2) + (w / 2 * -1) + blur_x + offset_x + (trim_x / 2)
+    local rx = (screen_w / 2) + (w / 2) + blur_x + offset_x + (trim_x / 2)
+    local ty = (screen_h / 2) + (h / 2 * -1) + blur_y + offset_y + (trim_y / 2)
+    local uy = (screen_h / 2) + (h / 2) + blur_y + offset_y + (trim_y / 2)
+
+    local trim_w_limit = 0
+    local trim_h_limit = 0
+
+    local flx = lx
+    local fty = ty
+
+    if (rx > screen_w) then
+        trim_w_limit = rx - screen_w
+        offset_x = (rx - screen_w) * -1 / 2
+    elseif (lx < 0) then
+        flx = 0
+        trim_w_limit = lx * -1
+        offset_x = (lx * -1) / 2
+    end
+
+    if (uy > screen_h) then
+        trim_h_limit = uy - screen_h
+        offset_y = (uy - screen_h) * -1 / 2
+    elseif (ty < 0) then
+        fty = 0
+        trim_h_limit = ty * -1
+        offset_y = (ty * -1) / 2
+    end
+
+    obj.load("framebuffer", flx, fty, (w - trim_x - trim_w_limit), (h - trim_y - trim_h_limit))
 else
     obj.load("framebuffer")
 end
 
-obj.effect("Blur","Range",blur,"Size Fix",1)
+
+obj.effect("Blur","Range",blur_power,"Size Fix",1)
 if (blur_color ~= nil) then
-	obj.effect("Monochromatic","Strength",c_pow,"color",color,"Keep luminance",0)
+	obj.effect("Monochromatic","Strength",color_power,"color",blur_color,"Keep luminance",0)
 end
 if (color_hue ~= 0) then
-	obj.effect("Color Correction","Hue",c_hue)
+	obj.effect("Color Correction","Hue",color_hue)
 end
 
 if (alt_mask_switch == 1 or limit_switch == 1) then
-    obj.draw(offset_x, offset_y, 0, 1/all_zoom, 1, 0, 0, 0)
+    obj.draw(offset_x, offset_y, 0, 1, 1, 0, 0, 0)
 else
-    obj.draw(dfx, dfy, 0, 1/all_zoom, 1, 0, 0, -rz)
+    local dfx,dfy = rot(-blur_x,-blur_y,-rz)
+    obj.draw(dfx, dfy, 0, 1, 1, 0, 0, -rz)
 end
 
 if (alt_mask_switch == 0) then
@@ -592,7 +642,6 @@ end
 obj.setoption("blend","alpha_sub")
 obj.effect("Reversal","Transparency inversion",1)
 obj.draw()
-
 obj.setoption("blend",0)
 
 if (inactive_flag == 0) then
@@ -602,7 +651,6 @@ elseif (inactive_flag == 1) then
 end
 
 obj.draw()
-
 obj.load("tempbuffer")
 
 obj.ox = obj.ox + ox
