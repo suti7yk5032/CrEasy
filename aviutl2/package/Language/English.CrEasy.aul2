@@ -30,3 +30,5 @@ Yオフセット=Y offset
 Xトリム=X Trim
 Yトリム=Y Trim
 軽量化=Buffer limit
+[座標_サブピクセル無効@CrEasy]
+パススルー=Pass-through
