@@ -1,0 +1,32 @@
+[CrEasy@CrEasy]
+座標=Coordinate
+Xグリッド=X grid
+Yグリッド=Y grid
+Zグリッド=Z grid
+X上限=X limit
+Y上限=Y limit
+並び=Direction
+ウィンドウ番号=Window num
+レイヤー連携=Layer sync
+起点レイヤー=Origin layer
+レイヤー間隔=Layer spacing
+ブラー=Blur
+強さ=Level
+単色化=Coloring
+色=Color
+マスクファイル=Mask file
+その他=Misc
+パススルー=Pass-through
+乱数シード値=Random Seed
+[背景ブラー_for_CrEasy@CrEasy]
+ブラー=Blur
+強さ=Level
+単色化=Coloring
+色=Color
+マスクファイル=Mask file
+マスク代用=Alt mask
+Xオフセット=X offset
+Yオフセット=Y offset
+Xトリム=X Trim
+Yトリム=Y Trim
+軽量化=Buffer limit

@@ -13,7 +13,7 @@
 --track@layer_interval:レイヤー間隔,0,100,0,1
 --group:ブラー
 --check@blur_switch:ブラー,0
---track@blur_power:ぼかし,0,100,5,1
+--track@blur_power:強さ,0,100,5,1
 --track@color_power:単色化,0,100,0,1
 --color@blur_color:色,0x000000,0xffffff,0x74b8fc
 --file@mask_path:マスクファイル
@@ -240,17 +240,18 @@ end
 -- The original script is AeroGlass風@hksy 
 -- The original creator is 白水. Thanks!
 
-
---track@blur_power:ぼかし,0,100,5,1
+--group:ブラー
+--track@blur_power:強さ,0,100,5,1
 --track@color_power:単色化,0,100,0,1
 --color@blur_color:色,0x000000,0xffffff,0x74b8fc
 --file@mask_path:マスクファイル
+--check@limit_switch:軽量化,0
+--group:マスク代用
 --check@alt_mask_switch:マスク代用,0
 --track@offset_x:Xオフセット,-10000,10000,0,1
 --track@offset_y:Yオフセット,-10000,10000,0,1
 --track@trim_x:Xトリム,0,10000,0,1
 --track@trim_y:Yトリム,0,10000,0,1
---check@limit_switch:軽量化,0
 
 
 local function rot(x,y,r)
