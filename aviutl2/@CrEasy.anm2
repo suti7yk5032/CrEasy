@@ -1,16 +1,25 @@
 @CrEasy
+--group:座標
 --track@x_grid:Xグリッド,0,5000,0,1
 --track@y_grid:Yグリッド,0,5000,0,1
 --track@z_grid:Zグリッド,0,5000,0,1
+--track@screen_x_deadzone:X上限,-5000,5000,0,1
+--track@screen_y_deadzone:Y上限,-5000,5000,0,1
+--group:並び
 --track@mode:並び,1,10,1,1
 --track@window_num_track:ウィンドウ番号,1,1000,1,1
 --check@auto_layer_switch:レイヤー連携,0
 --track@start_layer:起点レイヤー,1,5000,1,1
 --track@layer_interval:レイヤー間隔,0,100,0,1
+--group:ブラー
+--check@blur_switch:ブラー,0
+--track@blur_power:ぼかし,0,100,5,1
+--track@color_power:単色化,0,100,0,1
+--color@blur_color:色,0x000000,0xffffff,0x74b8fc
+--file@mask_path:マスクファイル
+--group:その他
 --check@pass_switch:パススルー,0
 --track@rand_seed:乱数シード値,0,1000,100,1
---track@screen_x_deadzone:X上限,0,5000,0,1
---track@screen_y_deadzone:Y上限,0,5000,0,1
 
 
 local item_w, item_h = obj.getpixel()
@@ -149,6 +158,57 @@ if (z_grid > 0) then
     obj.oz = obj.oz + oz
 end
 
+if (blur_switch == 1) then
+    local blur_x = (obj.x + obj.ox + obj.cx + ox)
+    local blur_y = (obj.y + obj.oy + obj.cy + oy)
+    local blur_z = (obj.z + obj.oz + obj.cz + oz)
+    local trim_w_limit = 0
+    local trim_h_limit = 0
+    local offset_x = 0
+    local offset_y = 0
+    local lx = (screen_w / 2) + (item_w / 2 * -1) + blur_x + offset_x
+    local rx = (screen_w / 2) + (item_w / 2) + blur_x + offset_x
+    local ty = (screen_h / 2) + (item_h / 2 * -1) + blur_y + offset_y
+    local uy = (screen_h / 2) + (item_h / 2) + blur_y + offset_y
+    local flx = lx
+    local fty = ty
+
+    obj.setoption("drawtarget","tempbuffer",item_w,item_h)
+
+    if (rx > screen_w) then
+        trim_w_limit = rx - screen_w
+        offset_x = (rx - screen_w) * -1 / 2
+    elseif (lx < 0) then
+        flx = 0
+        trim_w_limit = lx * -1
+        offset_x = (lx * -1) / 2
+    end
+
+    if (uy > screen_h) then
+        trim_h_limit = uy - screen_h
+        offset_y = (uy - screen_h) * -1 / 2
+    elseif (ty < 0) then
+        fty = 0
+        trim_h_limit = ty * -1
+        offset_y = (ty * -1) / 2
+    end
+    obj.load("framebuffer", flx, fty, (item_w - trim_w_limit), (item_h - trim_h_limit))
+    obj.effect("ぼかし","範囲",blur_power,"サイズ固定",1)
+    if (color_power > 0) then
+        obj.effect("単色化","強さ",color_power,"color",blur_color,"輝度を保持する",0)
+    end
+    obj.draw(offset_x, offset_y, 0, 1, 1, 0, 0, 0)
+    obj.load("image", mask_path)
+    obj.setoption("blend","alpha_sub")
+    obj.effect("反転","透明度反転",1)
+    obj.draw()
+
+    obj.setoption("blend",0)
+    obj.load("layer", obj.layer, false)
+    obj.draw()
+
+    obj.load("tempbuffer")
+end
 
 if (pass_switch == 0) then
     obj.ox = obj.ox + ox
