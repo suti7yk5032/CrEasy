@@ -19,6 +19,7 @@ Y上限=Y limit
 パススルー=Pass-through
 乱数シード値=Random Seed
 [背景ブラー_for_CrEasy@CrEasy]
+背景ブラー_for_CrEasy@CrEasy=BackBlur_for_CrEasy@CrEasy
 ブラー=Blur
 強さ=Level
 単色化=Coloring
@@ -31,4 +32,5 @@ Xトリム=X Trim
 Yトリム=Y Trim
 軽量化=Buffer limit
 [座標_サブピクセル無効@CrEasy]
+座標_サブピクセル無効@CrEasy=Coordinate_NoSubpixel@CrEasy
 パススルー=Pass-through
